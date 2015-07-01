@@ -17,7 +17,7 @@ app.use("/node_modules", express.static(__dirname + '/node_modules'));
 
 function getRoom(contributorId){
 	for(var key in rooms){
-		if(rooms[key].getContributor(contributorId) !== undefined || rooms[key].getContributor(contributorId) !== null){
+		if(rooms[key].getContributor(contributorId) !== undefined && rooms[key].getContributor(contributorId) !== null){
 			return key;
 		}
 	}
@@ -54,10 +54,14 @@ Room.prototype.getAllPeerIDs = function(){
 };
 
 Room.prototype.removeContributor = function(contributorID){
-	delete this.contributors[contributorID];
-	this.nbrOfContribs --;
-	console.log(">>>> A contributor has been deleted : " + contributorID);
-	console.log(this.contributors);
+	if(contributorID in this.contributors){
+		delete this.contributors[contributorID];
+		this.nbrOfContribs --;
+		console.log(this.nbrOfContribs);
+		console.log(">>>> A contributor has been deleted : " + contributorID);
+		console.log(this.contributors);
+	}
+
 };
 
 Room.prototype.isEmptyRoom = function(){
@@ -111,7 +115,7 @@ io.on('connection', function(socket){
 
 	socket.on('new_peer', function(infoPeer){
 		console.log(infoPeer.peerId);
-		console.log(">>>> Connection d'un pair : " , infoPeer.peerId);
+		console.log(">>>> Connection of a peer : " , infoPeer.peerId);
 		if(infoPeer.roomId in rooms){
 			console.log(">>>> Room exists");
 
@@ -132,8 +136,8 @@ io.on('connection', function(socket){
 		var key = getRoom(this.id);
 		if(key !== null){
 			rooms[key].removeContributor(this.id);
-			if(rooms[key].isEmptyRoom() && key != "1"){
-				console.log(">>>> Room " + key + " is deleted !")
+			if(rooms[key].isEmptyRoom() && key !== "1"){
+				console.log(">>>> Room " + key + " is deleted !");
 				delete rooms[key]; //All empty rooms are deleted except the demonstration room
 			}
 		}else{
