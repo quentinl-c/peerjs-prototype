@@ -69,7 +69,7 @@ Room.prototype.isEmptyRoom = function(){
 };
 
 var initRooms = function(){
-	rooms["demo"] = new Room();
+	rooms["1"] = new Room();
 	console.log(">>>> Init rooms : Add room demo");
 	console.log(rooms)
 };
@@ -113,7 +113,7 @@ io.on('connection', function(socket){
 		console.log(infoPeer.peerId);
 		console.log(">>>> Connection d'un pair : " , infoPeer.peerId);
 		if(infoPeer.roomId in rooms){
-			console.log(">>>> room exists");
+			console.log(">>>> Room exists");
 
 			var infoPeerIds = rooms[infoPeer.roomId].getAllPeerIDs();
 			this.emit('infoPeerIds', infoPeerIds);
@@ -122,7 +122,7 @@ io.on('connection', function(socket){
 			rooms[infoPeer.roomId].addContributor(newContributor);
 		}else{
 			console.log(">>>> WARNING : room doesn't seem to exist");
-			this.emit('error_server', 'Room dosn\'t exist !');
+			this.emit('error_server', 'Room doesn\'t exist !');
 		}
 		
 	});
@@ -132,8 +132,9 @@ io.on('connection', function(socket){
 		var key = getRoom(this.id);
 		if(key !== null){
 			rooms[key].removeContributor(this.id);
-			if(rooms[key].isEmptyRoom()){
-				delete rooms[key]; //All empty rooms are deleted 
+			if(rooms[key].isEmptyRoom() && key != "1"){
+				console.log(">>>> Room " + key + " is deleted !")
+				delete rooms[key]; //All empty rooms are deleted except the demonstration room
 			}
 		}else{
 			console.log(">>>> WARNING : Peer doesn't exist !");

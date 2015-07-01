@@ -20,25 +20,20 @@
                             <a href="/new-room">New room</a>
                         </li>
                     </ul>
-                    <form class="navbar-form navbar-left" role="search">
-                        <div class="form-group">
-                            <input type="text" class="form-control">
-                        </div> 
-                        <button type="submit" class="btn btn-default">
-                            Submit
-                        </button>
-                    </form>
                 </div>
                 
             </nav>
             <div class="row">
                 <div class="col-md-12">
+                    <div class="jumbotron">
+                        <h2>Share the room <span id="roomID"><%= roomId %></span></h2>
+                        <p>please copy the following link : <span id="url"></span></p>
+                    </div>
+                </div>
+                <div class="col-md-12">
                      <div class="alert alert-danger" role="alert" id="error" style="display:none"><span class="sr-only">Error:</span><span id="log"></span></div>
-                </div>
-                    <h2> Vroum ID : <span id="roomID"><%= roomId %></span></h2>
-                    <h2>Client Id : <span id="client-id"></span></h2>
-
-                </div>
+                        <h2>Client Id : <span id="client-id"></span></h2>
+                    </div>
             </div>
             <div class="row">
                 <div class="col-md-6">
@@ -49,7 +44,7 @@
                 </div>
 
                     <div class="col-md-6">
-                    <h2>Colaborators : </h2>
+                    <h2>Others collaborators : </h2>
                         <ul class="list-group" id="collaborators">
                         </ul>
                      </div>
@@ -69,13 +64,17 @@
         var peerIds;
         
         var count = 0;
-        
+
+        var url = window.location.href ;
+         
+         $("#url").append(url);
+
         var pathArray = window.location.pathname.split( '/' );
         var roomId = parseInt(pathArray[2]);
         
         var peer = new Peer({key: 'lwjd5qra8257b9', debug : true});
         
-        console.log(">>>> Peer object is being creating");
+        console.log(">>>> Peer object is being created");
        
         
         peer.on('open', function(id) {

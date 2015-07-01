@@ -19,29 +19,23 @@
                         <li>
                             <a href="/new-room">New room</a>
                         </li>
-                        <li>
-                            <a href="#">Link</a>
-                        </li>
                     </ul>
-                    <form class="navbar-form navbar-left" role="search">
-                        <div class="form-group">
-                            <input type="text" class="form-control">
-                        </div> 
-                        <button type="submit" class="btn btn-default">
-                            Submit
-                        </button>
-                    </form>
                 </div>
                 
             </nav>
             <div class="row">
                 <div class="col-md-12">
-                    <div class="alert alert-success" role="alert" id="ok" style="display:none">Connection établie avec : <span id="neighbour_id"></span></div>
-                    <h2> Vroum ID : <span id="roomID">Demo</span></h2>
-                    <h2>Client Id : <span id="client-id"></span></h2>
-
+                    <div class="jumbotron">
+                        <h2>Share the room <span id="roomID">Demo</span></h2>
+                        <p>please copy the following link : <span id="url"></span></p>
+                    </div>
                 </div>
-            </div>
+                <div class="col-md-12">
+                     <div class="alert alert-danger" role="alert" id="error" style="display:none"><span class="sr-only">Error:</span><span id="log"></span></div>
+                
+                        <h2>Client Id : <span id="client-id"></span></h2>
+                    </div>
+                </div>
             <div class="row">
                 <div class="col-md-6">
                    
@@ -51,7 +45,7 @@
                 </div>
 
                     <div class="col-md-6">
-                    <h2>Colaborators : </h2>
+                    <h2>Others collaborators : </h2>
                         <ul class="list-group" id="collaborators">
                         </ul>
                      </div>
@@ -60,21 +54,20 @@
         </div>
     </div>
 </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/assets/js/jquery.min.js"></script>
-    <script src="/assets/js/bootstrap.min.js"></script>
-    <script src="/assets/js/scripts.js"></script>
-    <script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <%- include('js-ext') -%>
     <script type="text/javascript">
+
         var socket = io.connect('http://localhost:3000/');
+
         var conn = [];
         var remoteId;
         var peerId;
         var peerIds;
         var count = 0;
 
+        var url = window.location.href ;
+
+        $("#url").append(url);
         console.log("Création de l'objet Peer");
         var peer = new Peer({key: 'lwjd5qra8257b9', debug : true});
         
@@ -92,12 +85,21 @@
         peer.on('connection', connect);
 
         function connect (connection){
+            console.log(peer.connections);
             conn.push(connection);
+            $("#collaborators").append('<li class="list-group-item" id =' + connection.peer +'>' + connection.peer + '</li>');
             connection.on('data', function(data){
                 console.log("Receiving data");
                 console.log(data);
                 $("#data").append('<li class="list-group-item">' + data + '</li>');
             });
+            connection.on('close', function(){
+                console.log(">>>> A peer is disconnected : ");
+                $("#" + this.peer).remove();
+                this.close();
+                var index = conn.indexOf(this);
+                conn.splice(index, 1);
+            })
         }
 
         socket.on('infoPeerIds', function(infoPeerIds){
@@ -106,40 +108,36 @@
             for (var i = 0; i < peerIds.length; i++) {
                 console.log(">>>> Ajout d'une nouvelle connection : ");
                 var remoteIds = peerIds[i];
-                yolo(remoteIds);
+                AddCollaborator(remoteIds);
             };
         });
+        socket.on('error_server', function(log){
+            $("#error").show();
+            $("#log").append(log);
+        });
 
-        function yolo (remoteIds){
+        function AddCollaborator (remoteIds){
             var connection = peer.connect(remoteIds);
                 connection.on('open', function() {
                     console.log('connectio' ,connection)
                     console.log('remoteIds : ' , remoteIds);
-                    $("#ok").show();
-                    $("#neighbour_id").append(remoteIds);
                     connect(connection);
                 });
         }
 
         setInterval(function(){
             console.log('conn : ' , conn );
+            var currentdate = new Date();
+            var datetime = currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
             for(var i = 0; i < conn.length; i++){
-                var message = count +" "+ peerId;
+                var message = count +" -> "+ datetime + " -> " + peerId;
                 conn[i].send(message);
             }
-            count ++;
+            if(conn.length > 0){
+                count ++;
+            }
         }, 1000);
 
-        $('#myform').submit(function(event){
-            remoteId = $('#remoteId').val();
-            var connection = peer.connect(remoteId);
-            connection.on('open', function() {
-                $("#ok").show();
-                $("#neighbour_id").append(remoteId);
-                connect(connection);
-            });
-            event.preventDefault();
-        });
     </script>
   </body>
 </html>
