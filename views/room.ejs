@@ -56,8 +56,7 @@
     <%- include('js-ext') -%>
     <script type="text/javascript">
         var url = window.location.href ;
-        console.log(url);
-        var socket = io.connect(url);
+        var socket = io.connect(window.location.hostname);
         var conn = [];
         var remoteId;
         
