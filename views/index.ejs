@@ -56,10 +56,9 @@
 </div>
     <%- include('js-ext') -%>
     <script type="text/javascript">
-        var url = window.location.href ;
-        console.log(url);
-        var socket = io.connect(window.location.hostname);
 
+        var socket = io.connect(window.location.hostname);
+        var url = window.location.href ;
         var conn = [];
         var remoteId;
         var peerId;
@@ -86,21 +85,23 @@
         peer.on('connection', connect);
 
         function connect (connection){
-            console.log(peer.connections);
-            conn.push(connection);
-            $("#collaborators").append('<li class="list-group-item" id =' + connection.peer +'>' + connection.peer + '</li>');
-            connection.on('data', function(data){
-                console.log("Receiving data");
-                console.log(data);
-                $("#data").append('<li class="list-group-item">' + data + '</li>');
-            });
-            connection.on('close', function(){
-                console.log(">>>> A peer is disconnected : ");
-                $("#" + this.peer).remove();
-                this.close();
-                var index = conn.indexOf(this);
-                conn.splice(index, 1);
-            })
+            if(!peerAlreadyExists(connection)){
+                console.log(peer.connections);
+                conn.push(connection);
+                $("#collaborators").append('<li class="list-group-item" id =' + connection.peer +'>' + connection.peer + '</li>');
+                connection.on('data', function(data){
+                    console.log("Receiving data");
+                    console.log(data);
+                    $("#data").append('<li class="list-group-item">' + data + '</li>');
+                });
+                connection.on('close', function(){
+                    console.log(">>>> A peer is disconnected : ");
+                    $("#" + this.peer).remove();
+                    this.close();
+                    var index = conn.indexOf(this);
+                    conn.splice(index, 1);
+                });
+            }
         }
 
         socket.on('infoPeerIds', function(infoPeerIds){
@@ -124,6 +125,15 @@
                     console.log('remoteIds : ' , remoteIds);
                     connect(connection);
                 });
+        }
+
+        function peerAlreadyExists(connection){
+            for(var i = 0; i < conn.length; i++){
+                if(conn[i].peer === connection.peer){
+                    return true
+                }
+            }
+            return false;
         }
 
         setInterval(function(){
