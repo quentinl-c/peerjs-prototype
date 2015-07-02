@@ -15,9 +15,9 @@ app.use("/assets", express.static(__dirname + '/assets'));
 app.use("/views", express.static(__dirname + '/views'));
 app.use("/node_modules", express.static(__dirname + '/node_modules'));
 
-function getRoom(contributorId){
+function getRoom(contributorKey){
 	for(var key in rooms){
-		if(rooms[key].getContributor(contributorId) !== undefined && rooms[key].getContributor(contributorId) !== null){
+		if(rooms[key].getContributor(contributorKey) !== undefined && rooms[key].getContributor(contributorKey) !== null){
 			return key;
 		}
 	}
@@ -40,8 +40,8 @@ Room.prototype.addContributor = function (newContributor){
 	this.nbrOfContribs ++;
 };
 
-Room.prototype.getContributor = function(contributorId){
-	return this.contributors[contributorId];
+Room.prototype.getContributor = function(contributorKey){
+	return this.contributors[contributorKey];
 };
 
 Room.prototype.getAllPeerIDs = function(){
@@ -53,12 +53,12 @@ Room.prototype.getAllPeerIDs = function(){
 	return peerIds;
 };
 
-Room.prototype.removeContributor = function(contributorID){
-	if(contributorID in this.contributors){
-		delete this.contributors[contributorID];
+Room.prototype.removeContributor = function(contributorKey){
+	if(this.contributorAlreadyExists(contributorKey)){
+		delete this.contributors[contributorKey];
 		this.nbrOfContribs --;
 		console.log(this.nbrOfContribs);
-		console.log(">>>> A contributor has been deleted : " + contributorID);
+		console.log(">>>> A contributor has been deleted : " + contributorKey);
 		console.log(this.contributors);
 	}
 
@@ -72,10 +72,18 @@ Room.prototype.isEmptyRoom = function(){
 	}
 };
 
+Room.prototype.contributorAlreadyExists = function(contributorKey){
+	if(contributorKey in this.contributors){
+		return true;
+	}else{
+		return false;
+	}
+}
+
 var initRooms = function(){
 	rooms["1"] = new Room();
 	console.log(">>>> Init rooms : Add room demo");
-	console.log(rooms)
+	console.log(rooms);
 };
 
 var Contributor = function(socket, peerId){
@@ -112,16 +120,13 @@ app.get('/room/:id', function(req, res){
 
 
 io.on('connection', function(socket){
-
 	socket.on('new_peer', function(infoPeer){
 		console.log(infoPeer.peerId);
 		console.log(">>>> Connection of a peer : " , infoPeer.peerId);
 		if(infoPeer.roomId in rooms){
 			console.log(">>>> Room exists");
-
 			var infoPeerIds = rooms[infoPeer.roomId].getAllPeerIDs();
 			this.emit('infoPeerIds', infoPeerIds);
-
 			var newContributor = new Contributor(this, infoPeer.peerId);
 			rooms[infoPeer.roomId].addContributor(newContributor);
 		}else{
@@ -150,5 +155,5 @@ io.on('connection', function(socket){
 
 
 http.listen(3000, function(){
-  	console.log('listening on *:3000');
+	console.log('listening on *:3000');
 });
